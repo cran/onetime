@@ -1,0 +1,6 @@
+
+TODO
+
+QUESTIONS
+* Would it be OK to make examples runnable?
+* Should I make `id` compulsory to avoid footguns in large projects?
