@@ -1,51 +1,67 @@
 
-
 #' Run code only once
 #'
-#' This function runs an expression just once. It then creates a lockfile
-#' recording a unique ID which will prevent the expression being run again.
+#' When first called, `onetime_do()` evaluates an expression. It then creates a
+#' lockfile recording a unique ID which will prevent the expression being run
+#' on subsequent calls.
+#'
 #'
 #' @param expr The code to evaluate. An R statement or [expression()] object.
 #' @inherit common-params
 #' @param default Value to return if `expr` was not executed.
 #'
 #' @details
+#' `onetime_do()` is the engine used by other onetime functions.
+#'
 #' Calls are identified by `id`. If you use the same value of `id` across
-#' different calls to `onetime_do()` and similar functions, only the first
-#' call will get made.
+#' different calls to onetime functions, only the first call will get made.
 #'
-#' By default, `id` is just the name of the calling package. This is for the
-#' common use case of a single call within a package (e.g. at first startup).
-#' If you want to use multiple calls, or if the calling code is not within a
-#' package, then you *must* set `id` explicitly. If you are working in a
-#' large project with many contributors, it is *strongly recommended to set*
-#' `id ` *explicitly*.
+#' The default `path`, where lockfiles are stored, is in a per-package directory
+#' beneath [rappdirs::user_config_dir()]. To use a different subdirectory within
+#' the onetime base directory, set `path = onetime_dir("dirname")`.
 #'
-#' The default `path`, where lockfiles are stored, is within
-#' [rappdirs::user_config_dir()] unless overridden by `options("onetime.dir")`.
-#' If the lockfile cannot be written (e.g. because the user has not given
-#' permission to store files on his or her computer), then the call will still
-#' be run, so it may be run repeatedly. Conversely, if the call gives an error,
-#' the lockfile is still written.
+#' End users can also set `options(onetime.dir)` to change the base directory.
+#' Package authors should only set this option locally within package functions,
+#' if at all.
 #'
-#' @return The value of `expr`, invisibly; or `default` if `expr` was not run
-#' because it had been run already.
+#' If the call gives an error, the lockfile is still written.
+#'
+#' `expiry` is backward-looking. That is, `expiry` is used at check time to see
+#' if the lockfile was written after `Sys.time() - expiry`. It is not used when
+#' the lockfile is created. So, you should set `expiry` to the same value
+#' whenever you call `onetime_do()`. See the example.
+#'
+#' @return `onetime_do()` invisibly returns the value of `expr`,
+#' or `default` if `expr` was not run because it had been run already.
 #'
 #' @export
 #'
-#' @examples
+#' @doctest
 #' oo <- options(onetime.dir = tempdir(check = TRUE))
 #' id <- sample(10000L, 1L)
 #'
 #' for (n in 1:3) {
+#' @expect output(regexp = if (n == 1L) "once" else NA)
 #'   onetime_do(print("printed once"), id = id)
 #' }
 #'
+#' # expiry is "backward-looking":
+#' id2 <- sample(10000L, 1L)
+#' expiry <- as.difftime(1, units = "secs")
+#' onetime_do(print("Expires quickly, right?"), id = id2, expiry = expiry)
+#' Sys.sleep(2)
+#' @expect silent()
+#' onetime_do(print("This won't be shown..."), id = id2)
+#' @expect output("but this will")
+#' onetime_do(print("... but this will"), id = id2, expiry = expiry)
+#'
+#'
 #' onetime_reset(id = id)
+#' onetime_reset(id = id2)
 #' options(oo)
 onetime_do <- function(
         expr,
-        id      = calling_package(),
+        id      = deprecate_calling_package(),
         path    = default_lockfile_dir(),
         expiry  = NULL,
         default = NULL,
@@ -53,7 +69,7 @@ onetime_do <- function(
       ) {
   do_onetime_do(expr = expr, id = id, path = path, expiry = expiry,
                 default = default, without_permission = without_permission,
-                require_permission = TRUE)
+                require_permission = TRUE, invisibly = TRUE)
 }
 
 
@@ -66,32 +82,41 @@ onetime_do <- function(
 #'
 #' @param .f A function
 #' @inherit common-params
+#' @param default Value to return from `.f` if function was not executed.
 #'
-#' @return A wrapped function.
+#' @return
+#' A wrapped function. The function itself returns the result of `.f`,
+#' or  `default` if the inner function was not called.
 #'
 #' @export
 #'
 #' @seealso [onetime_do()]
 #'
-#' @examples
+#' @doctest
 #' oo <- options(onetime.dir = tempdir(check = TRUE))
 #' id <- sample(10000L, 1)
 #'
 #' sample_once <- onetime_only(sample, id = id)
+#' @expect length(10)
 #' sample_once(1:10)
+#' @expect null()
 #' sample_once(1:10)
 #'
 #' onetime_reset(id)
 #' options(oo)
 onetime_only <- function (
         .f,
-        id   = calling_package(),
+        id = deprecate_calling_package(),
         path = default_lockfile_dir(),
+	      default = NULL,
         without_permission = "warn"
       ) {
   force(id)
   force(path)
   force(without_permission)
-  function (...) onetime_do(.f(...), id = id, path = path,
-                            without_permission = without_permission)
+  function (...) {
+    do_onetime_do(.f(...), id = id, path = path,
+                            without_permission = without_permission,
+			    default = default, invisibly = FALSE)
+  }
 }

@@ -3,6 +3,7 @@
 \docType{package}
 \name{onetime}
 \alias{onetime}
+\alias{onetime-package}
 \title{Run code only once}
 \description{
 Onetime allows package authors to run code only once (ever) for a given
@@ -11,11 +12,6 @@ configuration directory as given by \code{\link[rappdirs:user_data_dir]{rappdirs
 user can set an alternative filepath using \code{options("onetime.dir")}.
 }
 \details{
-It is package authors' responsibility to check for permission
-to store lockfiles. This may have been done already by another package if
-onetime was already installed. You can ask permission interactively on
-the command line by calling \code{\link[=check_ok_to_store]{check_ok_to_store()}} with \code{ask = TRUE}.
-
 Core functions include:
 \itemize{
 \item \code{\link[=onetime_do]{onetime_do()}} runs arbitrary code only once.
@@ -27,45 +23,45 @@ functions from the rlang package.
 \item \code{\link[=onetime_only]{onetime_only()}} returns a function that runs only once.
 \item \code{\link[=check_ok_to_store]{check_ok_to_store()}} and \code{\link[=set_ok_to_store]{set_ok_to_store()}} check for or grant
 permission to store lockfiles on the user's computer.
+It is package authors' responsibility to check for permission
+to store lockfiles. This may have been done already by another package if
+onetime was already installed. You can ask permission interactively on
+the command line by calling \code{\link[=check_ok_to_store]{check_ok_to_store()}} with \code{ask = TRUE}.
 }
+
+For more information, see \code{vignette("onetime")}.
 
 \subsection{Example}{
 
 \if{html}{\out{<div class="sourceCode r">}}\preformatted{library(onetime)
-ids  <- paste0("onetime-readme-", sample(1e9, 4))
 
+ids  <- paste0("onetime-readme-", 1:3) 
 
 for (i in 1:5) \{
-  cat("Loop ", i, " of 5\n")
   onetime_do(cat("This command will only be run once.\n"), id = ids[1])
   onetime_warning("This warning will only be shown once.", id = ids[2])
   onetime_message("This message will only be shown once.", id = ids[3])
 \}
 }\if{html}{\out{</div>}}
 
-\if{html}{\out{<div class="sourceCode">}}\preformatted{## Loop  1  of 5
-## This command will only be run once.
+\if{html}{\out{<div class="sourceCode">}}\preformatted{## This command will only be run once.
 
 ## Warning: This warning will only be shown once.
 
 ## This message will only be shown once.
-
-## Loop  2  of 5
-## Loop  3  of 5
-## Loop  4  of 5
-## Loop  5  of 5
-}\if{html}{\out{</div>}}
-
-\if{html}{\out{<div class="sourceCode r">}}\preformatted{# Meanwhile, in a separate process:
-library(callr)
-result <- callr::r(function (ids) \{
-  onetime::onetime_message("This message with an existing ID will not be shown.", id = ids[1])
-  onetime::onetime_message("This message with a new ID will be shown.", id = ids[4])
-\}, show = TRUE, args = list(ids = ids))
-}\if{html}{\out{</div>}}
-
-\if{html}{\out{<div class="sourceCode">}}\preformatted{## This message with an existing ID will not be shown.
-## This message with a new ID will be shown.
 }\if{html}{\out{</div>}}
 }
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/hughjonesd/onetime}
+  \item \url{https://hughjonesd.github.io/onetime/}
+  \item Report bugs at \url{https://github.com/hughjonesd/onetime/issues}
+}
+
+}
+\author{
+\strong{Maintainer}: David Hugh-Jones \email{davidhughjones@gmail.com}
+
 }

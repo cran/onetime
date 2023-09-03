@@ -5,23 +5,31 @@
 \title{Print a message, and ask for confirmation to hide it in future}
 \usage{
 onetime_message_confirm(
-  message,
-  id = calling_package(),
+  ...,
+  id = deprecate_calling_package(),
   path = default_lockfile_dir(),
   expiry = NULL,
   confirm_prompt = "Show this message again? [yN] ",
   confirm_answers = c("N", "n", "No", "no"),
   default_answer = "N",
   require_permission = FALSE,
-  without_permission = "warn"
+  without_permission = "warn",
+  noninteractive = paste0("To hide this message in future, run:\\n",
+    "  onetime::onetime_mark_as_done(id = \\"", id, "\\")"),
+  message = .Deprecated()
 )
 }
 \arguments{
-\item{message}{Message to display to the user.}
+\item{...}{Passed to \code{\link[=message]{message()}}.}
 
-\item{id}{Unique ID string. By default, name of the calling package.}
+\item{id}{Unique ID string. If this is unset, the name of the calling
+package will be used. Since onetime 0.2.0, not setting \code{id} is
+deprecated.}
 
-\item{path}{Directory to store lockfiles.}
+\item{path}{Directory to store lockfiles. The default uses a unique
+directory corresponding to the calling package, beneath
+\code{\link[rappdirs:user_data_dir]{rappdirs::user_config_dir()}}. Normally you should leave this as the
+default.}
 
 \item{expiry}{\code{\link[=difftime]{difftime()}} or e.g. \code{\link[lubridate:duration]{lubridate::duration()}} object.
 After this length of time, code will be run again.}
@@ -41,21 +49,36 @@ overrides \code{without_permission}.}
 
 \item{without_permission}{Character string. What to do if the user hasn't
 given permission to store files? \code{"warn"} runs the action with an extra
-warning; \code{"run"} runs the action; \code{"pass"} does nothing and returns the
-default; \code{"stop"} throws an error; \code{"ask"} asks for permission, after
-running the action but before recording it on disk.}
+warning; \code{"run"} runs the action with no warning; \code{"pass"} does nothing
+and returns the default; \code{"stop"} throws an error; \code{"ask"} asks for
+permission using \code{\link[=check_ok_to_store]{check_ok_to_store()}}, and returns the default if it is
+not granted.}
+
+\item{noninteractive}{String. Additional message to send in non-interactive
+sessions. Set to \code{NULL} to do nothing in non-interactive sessions. The
+default tells the user how to manually mark the message as done.}
+
+\item{message}{Deprecated. Use unnamed arguments \code{...} instead.}
 }
 \value{
-\code{NULL} if the message was not shown (shown already or non-interactive
-session). \code{TRUE} if the user confirmed (i.e. asked to hide the message).
-\code{FALSE} if the message was shown but the user did not confirm. Note that by
-default, \code{TRUE} is returned when the user answers "no" to "Show this message
-again?"
+\itemize{
+\item \code{NULL} if the message was not shown (shown already or non-interactive
+session and \code{noninteractive} was \code{NULL}).
+\item \code{TRUE} if the user confirmed, i.e. chose to hide the message.
+\item \code{FALSE} if the message was shown but the user did not confirm (did not
+choose to hide the message, or non-interactive session and \code{noninteractive}
+was not \code{NULL}).
+}
+
+Results are returned invisibly.
+
+Note that by default, \code{TRUE} is returned when the user answers "no" to
+"Show this message again?" and \code{FALSE} is returned when the user answers
+"yes".
 }
 \description{
 This uses \code{\link[=readline]{readline()}} to ask the user if the message should
-be shown again in future. In a non-interactive session, it does
-nothing.
+be shown again in future.
 }
 \details{
 By default, the message will be hidden if the user answers
@@ -71,7 +94,6 @@ permission by setting \code{require_permission = TRUE} and
 \examples{
 oo <- options(onetime.dir = tempdir(check = TRUE))
 id <- sample(10000L, 1L)
-
 onetime_message_confirm("A message to show one or more times", id = id)
 
 onetime_reset(id = id)

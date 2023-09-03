@@ -6,32 +6,45 @@
 \usage{
 onetime_only(
   .f,
-  id = calling_package(),
+  id = deprecate_calling_package(),
   path = default_lockfile_dir(),
+  default = NULL,
   without_permission = "warn"
 )
 }
 \arguments{
 \item{.f}{A function}
 
-\item{id}{Unique ID string. By default, name of the calling package.}
+\item{id}{Unique ID string. If this is unset, the name of the calling
+package will be used. Since onetime 0.2.0, not setting \code{id} is
+deprecated.}
 
-\item{path}{Directory to store lockfiles.}
+\item{path}{Directory to store lockfiles. The default uses a unique
+directory corresponding to the calling package, beneath
+\code{\link[rappdirs:user_data_dir]{rappdirs::user_config_dir()}}. Normally you should leave this as the
+default.}
+
+\item{default}{Value to return from \code{.f} if function was not executed.}
 
 \item{without_permission}{Character string. What to do if the user hasn't
 given permission to store files? \code{"warn"} runs the action with an extra
-warning; \code{"run"} runs the action; \code{"pass"} does nothing and returns the
-default; \code{"stop"} throws an error; \code{"ask"} asks for permission, after
-running the action but before recording it on disk.}
+warning; \code{"run"} runs the action with no warning; \code{"pass"} does nothing
+and returns the default; \code{"stop"} throws an error; \code{"ask"} asks for
+permission using \code{\link[=check_ok_to_store]{check_ok_to_store()}}, and returns the default if it is
+not granted.}
 }
 \value{
-A wrapped function.
+A wrapped function. The function itself returns the result of \code{.f},
+or  \code{default} if the inner function was not called.
 }
 \description{
 This takes a function and returns the same function wrapped by \code{\link[=onetime_do]{onetime_do()}}.
 Use it for code which should run only once, but which may be called from
 multiple locations. This frees you from having to use the same \code{id} multiple
 times.
+}
+\seealso{
+\code{\link[=onetime_do]{onetime_do()}}
 }
 \examples{
 oo <- options(onetime.dir = tempdir(check = TRUE))
@@ -43,7 +56,4 @@ sample_once(1:10)
 
 onetime_reset(id)
 options(oo)
-}
-\seealso{
-\code{\link[=onetime_do]{onetime_do()}}
 }

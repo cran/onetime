@@ -1,0 +1,603 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+
+
+<title>Introduction to onetime</title>
+
+<script>// Pandoc 2.9 adds attributes on both header and div. We remove the former (to
+// be compatible with the behavior of Pandoc < 2.8).
+document.addEventListener('DOMContentLoaded', function(e) {
+  var hs = document.querySelectorAll("div.section[class*='level'] > :first-child");
+  var i, h, a;
+  for (i = 0; i < hs.length; i++) {
+    h = hs[i];
+    if (!/^h[1-6]$/i.test(h.tagName)) continue;  // it should be a header h1-h6
+    a = h.attributes;
+    while (a.length > 0) h.removeAttribute(a[0].name);
+  }
+});
+</script>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+<style type="text/css">
+code {
+white-space: pre;
+}
+.sourceCode {
+overflow: visible;
+}
+</style>
+<style type="text/css" data-origin="pandoc">
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+{ counter-reset: source-line 0; }
+pre.numberSource code > span
+{ position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+{ content: counter(source-line);
+position: relative; left: -1em; text-align: right; vertical-align: baseline;
+border: none; display: inline-block;
+-webkit-touch-callout: none; -webkit-user-select: none;
+-khtml-user-select: none; -moz-user-select: none;
+-ms-user-select: none; user-select: none;
+padding: 0 4px; width: 4em;
+color: #aaaaaa;
+}
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa; padding-left: 4px; }
+div.sourceCode
+{ }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } 
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.at { color: #7d9029; } 
+code span.bn { color: #40a070; } 
+code span.bu { color: #008000; } 
+code span.cf { color: #007020; font-weight: bold; } 
+code span.ch { color: #4070a0; } 
+code span.cn { color: #880000; } 
+code span.co { color: #60a0b0; font-style: italic; } 
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.do { color: #ba2121; font-style: italic; } 
+code span.dt { color: #902000; } 
+code span.dv { color: #40a070; } 
+code span.er { color: #ff0000; font-weight: bold; } 
+code span.ex { } 
+code span.fl { color: #40a070; } 
+code span.fu { color: #06287e; } 
+code span.im { color: #008000; font-weight: bold; } 
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } 
+code span.kw { color: #007020; font-weight: bold; } 
+code span.op { color: #666666; } 
+code span.ot { color: #007020; } 
+code span.pp { color: #bc7a00; } 
+code span.sc { color: #4070a0; } 
+code span.ss { color: #bb6688; } 
+code span.st { color: #4070a0; } 
+code span.va { color: #19177c; } 
+code span.vs { color: #4070a0; } 
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } 
+</style>
+<script>
+// apply pandoc div.sourceCode style to pre.sourceCode instead
+(function() {
+  var sheets = document.styleSheets;
+  for (var i = 0; i < sheets.length; i++) {
+    if (sheets[i].ownerNode.dataset["origin"] !== "pandoc") continue;
+    try { var rules = sheets[i].cssRules; } catch (e) { continue; }
+    var j = 0;
+    while (j < rules.length) {
+      var rule = rules[j];
+      // check if there is a div.sourceCode rule
+      if (rule.type !== rule.STYLE_RULE || rule.selectorText !== "div.sourceCode") {
+        j++;
+        continue;
+      }
+      var style = rule.style.cssText;
+      // check if color or background-color is set
+      if (rule.style.color === '' && rule.style.backgroundColor === '') {
+        j++;
+        continue;
+      }
+      // replace div.sourceCode by a pre.sourceCode rule
+      sheets[i].deleteRule(j);
+      sheets[i].insertRule('pre.sourceCode{' + style + '}', j);
+    }
+  }
+})();
+</script>
+
+
+
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">Introduction to onetime</h1>
+
+
+
+<div id="motivation" class="section level1">
+<h1>Motivation</h1>
+<p>Sometimes package authors want to run code only once for a given user
+on a given computer. Not just “once per session”, but “only once ever”
+or “only once per month” at most. Here are some use cases:</p>
+<ul>
+<li>Tell users about new features in your package, without annoying them
+every time they load it.</li>
+<li>Show a message, with the option to hide it in future.</li>
+<li>Perform cleanup actions only once after an upgrade.</li>
+</ul>
+<p>The onetime package lets you do this.</p>
+<p>Onetime is a lightweight package, with just two package dependencies,
+rappdirs and filelock. Its total size including dependencies is less
+than 50 Kb. So it is cheap to include as a dependency in your own
+package.</p>
+</div>
+<div id="setup" class="section level1">
+<h1>Setup</h1>
+<p>You can install onetime from CRAN like this:</p>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" tabindex="-1"></a><span class="fu">install.packages</span>(<span class="st">&quot;onetime&quot;</span>)</span></code></pre></div>
+<p>Next, on the R command line, run</p>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" tabindex="-1"></a><span class="fu">library</span>(onetime)</span>
+<span id="cb2-2"><a href="#cb2-2" tabindex="-1"></a><span class="fu">check_ok_to_store</span>(<span class="at">ask =</span> <span class="cn">TRUE</span>)</span></code></pre></div>
+<p>If you haven’t used onetime before, you will be asked if it is OK to
+store files in onetime’s configuration directory. Answer <code>Y</code>.
+Now you can try out onetime’s functions.</p>
+</div>
+<div id="basic-usage" class="section level1">
+<h1>Basic usage</h1>
+<p>Let’s use <code>onetime_message()</code> to show a message just once.
+On the command line, enter:</p>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-1&quot;</span></span>
+<span id="cb3-2"><a href="#cb3-2" tabindex="-1"></a><span class="fu">onetime_message</span>(<span class="st">&quot;I shall say this only once!&quot;</span>, <span class="at">id =</span> id)</span>
+<span id="cb3-3"><a href="#cb3-3" tabindex="-1"></a><span class="co">#&gt; I shall say this only once!</span></span></code></pre></div>
+<p>You should see the message, displayed using the base R
+<code>message()</code> function.</p>
+<p>Now if you enter the same code again:</p>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" tabindex="-1"></a><span class="fu">onetime_message</span>(<span class="st">&quot;I shall say this only once!&quot;</span>, <span class="at">id =</span> id)</span></code></pre></div>
+<p>… you won’t see anything! Even if you restart R and again run
+<code>onetime_message()</code> with the same <code>id</code>, nothing
+will be shown. Onetime has stored a file on your computer to record that
+the message was already shown, and it doesn’t show it again.</p>
+<p>You still won’t see any message, even if you change the message
+itself:</p>
+<div class="sourceCode" id="cb5"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" tabindex="-1"></a><span class="fu">onetime_message</span>(<span class="st">&quot;Does nobody hear the cries of an poor old woman?&quot;</span>, <span class="at">id =</span> id)</span></code></pre></div>
+<p>That’s because onetime identifies actions by their <code>id</code>.
+If you change the <code>id</code>, you can send a new message:</p>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-2&quot;</span></span>
+<span id="cb6-2"><a href="#cb6-2" tabindex="-1"></a><span class="fu">onetime_message</span>(<span class="st">&quot;I repeat... I shall say this only once!&quot;</span>, <span class="at">id =</span> id)</span>
+<span id="cb6-3"><a href="#cb6-3" tabindex="-1"></a><span class="co">#&gt; I repeat... I shall say this only once!</span></span></code></pre></div>
+<p>You aren’t limited to sending messages. You can also give
+warnings:</p>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-3&quot;</span></span>
+<span id="cb7-2"><a href="#cb7-2" tabindex="-1"></a><span class="fu">onetime_warning</span>(<span class="st">&quot;you cannot expect me to shoot everyone in the town. &quot;</span>,</span>
+<span id="cb7-3"><a href="#cb7-3" tabindex="-1"></a>                <span class="st">&quot;I&#39;m unpopular enough as it is!&quot;</span>, <span class="at">id =</span> id)</span>
+<span id="cb7-4"><a href="#cb7-4" tabindex="-1"></a><span class="co">#&gt; Warning: you cannot expect me to shoot everyone in the town. I&#39;m unpopular</span></span>
+<span id="cb7-5"><a href="#cb7-5" tabindex="-1"></a><span class="co">#&gt; enough as it is!</span></span></code></pre></div>
+<p>You can print package startup messages using
+<code>onetime_startup_message()</code>. If the rlang package is
+installed, you can also use <code>onetime_rlang_inform()</code> and
+<code>onetime_rlang_warn()</code> to print messages and warnings using
+rlang format:</p>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-4&quot;</span></span>
+<span id="cb8-2"><a href="#cb8-2" tabindex="-1"></a><span class="fu">onetime_rlang_inform</span>(<span class="fu">c</span>(</span>
+<span id="cb8-3"><a href="#cb8-3" tabindex="-1"></a>                       <span class="st">&quot;Let that be a lesson to you.&quot;</span>, </span>
+<span id="cb8-4"><a href="#cb8-4" tabindex="-1"></a>                       <span class="at">i =</span> <span class="st">&quot;Never again will you burn my toast.&quot;</span></span>
+<span id="cb8-5"><a href="#cb8-5" tabindex="-1"></a>                       ), </span>
+<span id="cb8-6"><a href="#cb8-6" tabindex="-1"></a>                     <span class="at">id =</span> id)</span>
+<span id="cb8-7"><a href="#cb8-7" tabindex="-1"></a><span class="co">#&gt; Let that be a lesson to you.</span></span>
+<span id="cb8-8"><a href="#cb8-8" tabindex="-1"></a><span class="co">#&gt; ℹ Never again will you burn my toast.</span></span></code></pre></div>
+<p>Underlying all these functions is <code>onetime_do()</code>, which
+allows you to run arbitrary code just once:</p>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-5&quot;</span></span>
+<span id="cb9-2"><a href="#cb9-2" tabindex="-1"></a><span class="fu">onetime_do</span>(<span class="fu">light_the_candle_with_the_handle</span>(), <span class="at">id =</span> id)</span>
+<span id="cb9-3"><a href="#cb9-3" tabindex="-1"></a><span class="co">#&gt; If we kill him with the pill from the till</span></span>
+<span id="cb9-4"><a href="#cb9-4" tabindex="-1"></a><span class="co">#&gt; by making with it the drug in the jug, you need not</span></span>
+<span id="cb9-5"><a href="#cb9-5" tabindex="-1"></a><span class="co">#&gt; light the candle with the handle on the Gateau from the Chateau!</span></span></code></pre></div>
+<p>Onetime uses file locks to avoid race conditions. So even if you use
+multiple R processes, a onetime action will be run only once:</p>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" tabindex="-1"></a></span>
+<span id="cb10-2"><a href="#cb10-2" tabindex="-1"></a><span class="co"># NB: This chunk will only be run on Unix-alikes</span></span>
+<span id="cb10-3"><a href="#cb10-3" tabindex="-1"></a></span>
+<span id="cb10-4"><a href="#cb10-4" tabindex="-1"></a>cl <span class="ot">&lt;-</span> parallel<span class="sc">::</span><span class="fu">makeCluster</span>(<span class="dv">2</span>, <span class="at">outfile =</span> <span class="st">&quot;check.txt&quot;</span>)</span>
+<span id="cb10-5"><a href="#cb10-5" tabindex="-1"></a>otd <span class="ot">&lt;-</span> <span class="fu">getOption</span>(<span class="st">&quot;onetime.dir&quot;</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" tabindex="-1"></a></span>
+<span id="cb10-7"><a href="#cb10-7" tabindex="-1"></a>results <span class="ot">&lt;-</span> parallel<span class="sc">::</span><span class="fu">parSapply</span>(cl, <span class="dv">1</span><span class="sc">:</span><span class="dv">20</span>, <span class="at">otd =</span> otd,</span>
+<span id="cb10-8"><a href="#cb10-8" tabindex="-1"></a>  <span class="cf">function</span> (x, otd) {</span>
+<span id="cb10-9"><a href="#cb10-9" tabindex="-1"></a>    <span class="fu">options</span>(<span class="at">onetime.dir =</span> otd)</span>
+<span id="cb10-10"><a href="#cb10-10" tabindex="-1"></a>    onetime<span class="sc">::</span><span class="fu">onetime_message</span>(<span class="st">&quot;I will say this only once!&quot;</span>, <span class="at">id =</span> <span class="st">&quot;vignette-6&quot;</span>)</span>
+<span id="cb10-11"><a href="#cb10-11" tabindex="-1"></a>  }</span>
+<span id="cb10-12"><a href="#cb10-12" tabindex="-1"></a>)</span>
+<span id="cb10-13"><a href="#cb10-13" tabindex="-1"></a>parallel<span class="sc">::</span><span class="fu">stopCluster</span>(cl)</span>
+<span id="cb10-14"><a href="#cb10-14" tabindex="-1"></a></span>
+<span id="cb10-15"><a href="#cb10-15" tabindex="-1"></a><span class="fu">table</span>(results)</span>
+<span id="cb10-16"><a href="#cb10-16" tabindex="-1"></a><span class="co">#&gt; results</span></span>
+<span id="cb10-17"><a href="#cb10-17" tabindex="-1"></a><span class="co">#&gt; FALSE  TRUE </span></span>
+<span id="cb10-18"><a href="#cb10-18" tabindex="-1"></a><span class="co">#&gt;    19     1</span></span>
+<span id="cb10-19"><a href="#cb10-19" tabindex="-1"></a></span>
+<span id="cb10-20"><a href="#cb10-20" tabindex="-1"></a><span class="fu">readLines</span>(<span class="st">&quot;check.txt&quot;</span>)</span>
+<span id="cb10-21"><a href="#cb10-21" tabindex="-1"></a><span class="co">#&gt; [1] &quot;starting worker pid=51014 on localhost:11632 at 04:31:00.049&quot;</span></span>
+<span id="cb10-22"><a href="#cb10-22" tabindex="-1"></a><span class="co">#&gt; [2] &quot;starting worker pid=51013 on localhost:11632 at 04:31:00.049&quot;</span></span>
+<span id="cb10-23"><a href="#cb10-23" tabindex="-1"></a><span class="co">#&gt; [3] &quot;I will say this only once!&quot;</span></span></code></pre></div>
+</div>
+<div id="allowing-the-user-to-hide-a-message" class="section level1">
+<h1>Allowing the user to hide a message</h1>
+<p>Sometimes you may wish to show a message to the user but give them
+the option to hide it in future. You can do this with
+<code>onetime_message_confirm()</code>.</p>
+<p>In interactive sessions, this will ask the user if they want to show
+the message again:</p>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-7&quot;</span></span>
+<span id="cb11-2"><a href="#cb11-2" tabindex="-1"></a><span class="fu">onetime_message_confirm</span>(</span>
+<span id="cb11-3"><a href="#cb11-3" tabindex="-1"></a>  <span class="st">&quot;What are you doing with that serving girl in your arms?&quot;</span>,</span>
+<span id="cb11-4"><a href="#cb11-4" tabindex="-1"></a>  <span class="at">id =</span> id)</span></code></pre></div>
+<pre><code>#&gt; What are you doing with that serving girl in your arms?
+#&gt; Show this message again? [yN]</code></pre>
+<p>In non-interactive sessions, it will tell the user how they can hide
+the message in future:</p>
+<div class="sourceCode" id="cb13"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-8&quot;</span></span>
+<span id="cb13-2"><a href="#cb13-2" tabindex="-1"></a><span class="fu">onetime_message_confirm</span>(<span class="st">&quot;One drink and... all is quiet on the Western Front.&quot;</span>, </span>
+<span id="cb13-3"><a href="#cb13-3" tabindex="-1"></a>            <span class="at">id =</span> id)</span>
+<span id="cb13-4"><a href="#cb13-4" tabindex="-1"></a><span class="co">#&gt; One drink and... all is quiet on the Western Front.</span></span>
+<span id="cb13-5"><a href="#cb13-5" tabindex="-1"></a><span class="co">#&gt; To hide this message in future, run:</span></span>
+<span id="cb13-6"><a href="#cb13-6" tabindex="-1"></a><span class="co">#&gt;   onetime::onetime_mark_as_done(id = &quot;vignette-8&quot;)</span></span></code></pre></div>
+</div>
+<div id="setting-an-expiry-time" class="section level1">
+<h1>Setting an expiry time</h1>
+<p>You can set an expiry time by passing a <code>difftime()</code>
+object to the <code>expiry</code> argument of these functions. For
+example, this will print a message, but only if it has not been printed
+in the past week:</p>
+<div class="sourceCode" id="cb14"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-9&quot;</span></span>
+<span id="cb14-2"><a href="#cb14-2" tabindex="-1"></a><span class="fu">onetime_message</span>(<span class="st">&quot;Good moaning!&quot;</span>, </span>
+<span id="cb14-3"><a href="#cb14-3" tabindex="-1"></a>                <span class="at">id =</span> id, </span>
+<span id="cb14-4"><a href="#cb14-4" tabindex="-1"></a>                <span class="at">expiry =</span> <span class="fu">as.difftime</span>(<span class="dv">1</span>, <span class="st">&quot;weeks&quot;</span>)</span>
+<span id="cb14-5"><a href="#cb14-5" tabindex="-1"></a>                )</span>
+<span id="cb14-6"><a href="#cb14-6" tabindex="-1"></a><span class="co">#&gt; Good moaning!</span></span></code></pre></div>
+</div>
+<div id="using-onetime-in-your-package" class="section level1">
+<h1>Using onetime in your package</h1>
+<p>Onetime works by writing a file, typically to a folder in the user’s
+configuration directory. As a package author, it is your responsibility
+to check for permission to store lockfiles. CRAN policy demands that you
+do this. Onetime functions will check for this permission, and by
+default won’t store the file until it has been granted.</p>
+<p>You have several options to handle this:</p>
+<ul>
+<li><p>If your package is used directly from the command line, the
+simplest option is to call functions using
+<code>without_permission = &quot;ask&quot;</code>. This will ask the user for
+permission to store files if it has not been granted. If not, the action
+won’t be run.</p>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-10&quot;</span></span>
+<span id="cb15-2"><a href="#cb15-2" tabindex="-1"></a><span class="fu">onetime_message</span>(<span class="st">&quot;Thank you for your kind applause.&quot;</span>, </span>
+<span id="cb15-3"><a href="#cb15-3" tabindex="-1"></a>                <span class="at">id =</span> id,</span>
+<span id="cb15-4"><a href="#cb15-4" tabindex="-1"></a>                <span class="at">without_permission =</span> <span class="st">&quot;ask&quot;</span>)</span></code></pre></div>
+<pre><code>#&gt; The onetime package requests to store files in &#39;~/Library/Application Support/onetime&#39;.
+#&gt; Is this OK? [Yn]
+#&gt; Thank you for your kind applause.</code></pre></li>
+<li><p>If you want more control over when and how you ask users, you can
+call <code>check_ok_to_store(ask = TRUE)</code> manually before using
+onetime functions.</p>
+<div class="sourceCode" id="cb17"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" tabindex="-1"></a><span class="fu">check_ok_to_store</span>(</span>
+<span id="cb17-2"><a href="#cb17-2" tabindex="-1"></a>  <span class="at">ask =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb17-3"><a href="#cb17-3" tabindex="-1"></a>  <span class="at">message =</span> <span class="st">&quot;Please let this package store files in your config directory &#39;%s&#39;.&quot;</span>,</span>
+<span id="cb17-4"><a href="#cb17-4" tabindex="-1"></a>  <span class="at">confirm_prompt =</span> <span class="st">&quot;OK? (Y/N)&quot;</span></span>
+<span id="cb17-5"><a href="#cb17-5" tabindex="-1"></a>  )</span></code></pre></div>
+<pre><code>#&gt; Please let this package store files in your config directory&#39;~/Library/Application Support/onetime&#39;
+#&gt; OK? (Y/N)</code></pre></li>
+<li><p>In code which might be run non-interactively, or as part of a
+long-running command, you can manually call
+<code>set_ok_to_store(TRUE)</code> before you use other onetime
+functions. This will grant permission to store files, and will print a
+warning to the user explaining how they can change this:</p>
+<div class="sourceCode" id="cb19"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" tabindex="-1"></a><span class="fu">set_ok_to_store</span>(<span class="cn">TRUE</span>)</span>
+<span id="cb19-2"><a href="#cb19-2" tabindex="-1"></a><span class="co">#&gt; Granting the onetime package permission to store lockfiles on this computer.</span></span>
+<span id="cb19-3"><a href="#cb19-3" tabindex="-1"></a><span class="co">#&gt; Lockfiles are stored beneath &#39;/var/folders/mr/5c9516m5013_s0fjflvfx6f00000gn/T//RtmpQcSyT7&#39;.</span></span>
+<span id="cb19-4"><a href="#cb19-4" tabindex="-1"></a><span class="co">#&gt; You can revoke permission by calling:</span></span>
+<span id="cb19-5"><a href="#cb19-5" tabindex="-1"></a><span class="co">#&gt;   onetime::set_ok_to_store(FALSE)</span></span></code></pre></div></li>
+<li><p>By default, configuration files are stored beneath
+<code>rappdirs::user_config_dir()</code>. If you want to store
+configuration files in a non-standard directory, set
+<code>options(onetime.dir = &lt;path to directory&gt;)</code>. When this
+option is set, onetime assumes that permission has been granted. So, you
+can also use this approach to avoid raising the issue of permissions
+with the user - so long as you don’t plan to submit your package to
+CRAN.</p>
+<p>Use this mechanism with care. Package authors should <em>always</em>
+set <code>options(onetime.dir)</code> locally within their functions and
+set it back to its original value afterwards. Otherwise you risk
+changing the directory for other packages, or overwriting the user’s
+preferred value. You can do this using
+<code>withr::local_options()</code>:</p>
+<div class="sourceCode" id="cb20"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb20-1"><a href="#cb20-1" tabindex="-1"></a>my_func <span class="ot">&lt;-</span> <span class="cf">function</span> () {</span>
+<span id="cb20-2"><a href="#cb20-2" tabindex="-1"></a>  withr<span class="sc">::</span><span class="fu">local_options</span>(<span class="at">onetime.dir =</span> <span class="st">&quot;path to preferred directory&quot;</span>)</span>
+<span id="cb20-3"><a href="#cb20-3" tabindex="-1"></a>  <span class="fu">onetime_message</span>(<span class="st">&quot;Hit it hard with your spoon.&quot;</span>,</span>
+<span id="cb20-4"><a href="#cb20-4" tabindex="-1"></a>                  <span class="st">&quot;They always break in the end.&quot;</span>,</span>
+<span id="cb20-5"><a href="#cb20-5" tabindex="-1"></a>                  <span class="at">id =</span> <span class="st">&quot;flick-1&quot;</span>)</span>
+<span id="cb20-6"><a href="#cb20-6" tabindex="-1"></a>}</span></code></pre></div>
+<p>or in base R:</p>
+<div class="sourceCode" id="cb21"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" tabindex="-1"></a>my_func <span class="ot">&lt;-</span> <span class="cf">function</span> () {</span>
+<span id="cb21-2"><a href="#cb21-2" tabindex="-1"></a>  oo <span class="ot">&lt;-</span> <span class="fu">options</span>(<span class="at">onetime.dir =</span> <span class="st">&quot;path to preferred directory&quot;</span>)</span>
+<span id="cb21-3"><a href="#cb21-3" tabindex="-1"></a>  <span class="fu">on.exit</span>(<span class="fu">options</span>(oo))</span>
+<span id="cb21-4"><a href="#cb21-4" tabindex="-1"></a>  ...</span>
+<span id="cb21-5"><a href="#cb21-5" tabindex="-1"></a>}</span></code></pre></div></li>
+</ul>
+<p>If onetime has already been installed by a different package, then it
+is likely that the user will have already granted file permissions, and
+onetime functions will just work.</p>
+</div>
+<div id="utility-functions" class="section level1">
+<h1>Utility functions</h1>
+<p><code>onetime_been_done()</code> checks whether an action has been
+performed:</p>
+<div class="sourceCode" id="cb22"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" tabindex="-1"></a><span class="fu">onetime_been_done</span>(<span class="st">&quot;vignette-1&quot;</span>)</span>
+<span id="cb22-2"><a href="#cb22-2" tabindex="-1"></a><span class="co">#&gt; [1] TRUE</span></span>
+<span id="cb22-3"><a href="#cb22-3" tabindex="-1"></a><span class="fu">onetime_been_done</span>(<span class="st">&quot;vignette-unused&quot;</span>)</span>
+<span id="cb22-4"><a href="#cb22-4" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span></code></pre></div>
+<p>To reset a particular id, so that functions will be run again, use
+<code>onetime_reset()</code>:</p>
+<div class="sourceCode" id="cb23"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1" tabindex="-1"></a><span class="fu">onetime_reset</span>(<span class="at">id =</span> <span class="st">&quot;vignette-1&quot;</span>)</span>
+<span id="cb23-2"><a href="#cb23-2" tabindex="-1"></a><span class="fu">onetime_message</span>(<span class="st">&quot;I shall say this only once!&quot;</span>, <span class="at">id =</span> <span class="st">&quot;vignette-1&quot;</span>)</span>
+<span id="cb23-3"><a href="#cb23-3" tabindex="-1"></a><span class="co">#&gt; I shall say this only once!</span></span></code></pre></div>
+<p>From version 0.2.0 of the package, you can use
+<code>onetime_mark_as_done()</code> to manually mark a particular action
+as done:</p>
+<div class="sourceCode" id="cb24"><pre class="sourceCode r"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" tabindex="-1"></a>id <span class="ot">&lt;-</span> <span class="st">&quot;vignette-11&quot;</span></span>
+<span id="cb24-2"><a href="#cb24-2" tabindex="-1"></a><span class="fu">onetime_mark_as_done</span>(id)</span>
+<span id="cb24-3"><a href="#cb24-3" tabindex="-1"></a><span class="co"># Won&#39;t be shown:</span></span>
+<span id="cb24-4"><a href="#cb24-4" tabindex="-1"></a><span class="fu">onetime_message</span>(<span class="st">&quot;In my opinion, a whole Meccano set has fallen apart in there.&quot;</span>,</span>
+<span id="cb24-5"><a href="#cb24-5" tabindex="-1"></a>            <span class="at">id =</span> id)</span></code></pre></div>
+</div>
+<div id="going-further" class="section level1">
+<h1>Going further</h1>
+<p>More information is available on the onetime website:</p>
+<ul>
+<li><a href="https://hughjonesd.github.io/onetime/">CRAN
+version</a></li>
+<li><a href="https://hughjonesd.github.io/onetime/dev/">Development
+version</a></li>
+</ul>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

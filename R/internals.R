@@ -7,11 +7,14 @@ do_onetime_do <- function(
         expiry  = NULL,
         default = NULL,
         without_permission = c("warn", "run", "stop", "pass", "ask"),
-        require_permission = TRUE
+        require_permission = TRUE,
+        invisibly = TRUE
       ) {
   force(id)
   force(path)
   without_permission = match.arg(without_permission)
+
+  maybe_invisible <- if (invisibly) invisible else identity
 
   if (require_permission) {
     got_confirmation <- check_ok_to_store(ask = FALSE)
@@ -20,22 +23,21 @@ do_onetime_do <- function(
         warn = {
           warning("Could not store onetime files.")
           warning(options_info())
-          return(invisible(eval.parent(expr)))
+          return(maybe_invisible(eval.parent(expr)))
         },
         ask  = {
           result <- check_ok_to_store(ask = TRUE)
-          if (! result) return(default)
+          if (! result) return(maybe_invisible(default))
         },
-        run  = return(invisible(eval.parent(expr))),
+        run  = return(maybe_invisible(eval.parent(expr))),
         stop = stop("Could not store onetime files."),
-        pass = return(default),
+        pass = return(maybe_invisible(default)),
         # shouldn't ever get here
         stop("Unrecognized value of `without_permission`: ", without_permission)
       )
     }
   }
 
-  dir.create(path, showWarnings = FALSE, recursive = TRUE)
   fp <- onetime_filepath(id, path)
 
   lfp <- paste0(fp, ".lock")
@@ -48,43 +50,53 @@ do_onetime_do <- function(
   } else {
     FALSE
   }
-  if (! file_exists || file_expired) {
-    file.create(fp)
-    filelock::unlock(lck) # it's fine to do this twice, and quicker if
-                          # `expr` is slow to evaluate. It's also OK
-                          # to unlock once we've created the file;
-                          # other callers will then hit file.exists()
-                          # above
-    return(invisible(eval.parent(expr)))
-  } else {
-    return(default)
-  }
+
+  result <- if (! file_exists || file_expired) {
+              file.create(fp)
+              filelock::unlock(lck) # it's fine to do this twice, and quicker if
+                                    # `expr` is slow to evaluate. It's also OK
+                                    # to unlock once we've created the file;
+                                    # other callers will then hit file.exists()
+                                    # above
+              eval.parent(expr)
+            } else {
+              default
+            }
+
+  return(maybe_invisible(result))
 }
 
 
 onetime_filepath <- function (id, path, check_writable = TRUE) {
   stopifnot(length(id) == 1L, nchar(id) > 0L, length(path) == 1L)
   if (check_writable) {
+    dir.create(path, showWarnings = FALSE, recursive = TRUE)
     isdir <- file.info(path)$isdir
     # unname to work around earlier versions of isTRUE not liking names
     if (! isTRUE(unname(isdir))) {
-      stop("'", path, "' is not a directory")
+      stop("'", path, "' directory could not be created")
     }
     if (! file.access(path, 2) == 0L) {
-      stop("Could not write to '", path, "'")
+      stop("Could not write to '", path, "' directory")
     }
   }
   file.path(path, id)
 }
 
+deprecate_calling_package <- function () {
+  .Deprecated(msg = "Not setting an `id` in onetime functions is deprecated since version 0.2.0")
+  calling_package(n = 3L)
+}
 
-calling_package <- function (n = 2L) {
+
+calling_package <- function (n = 3L) {
   p <- parent.frame(n = n)
   tryCatch(
           getNamespaceName(topenv(p)),
           error = function (e) {
             if (grepl("not a namespace", e$message)) {
-              stop("Could not identify calling package. Try setting `id` explicitly.")
+              stop("Could not identify calling package. ",
+                   "Try setting `id` explicitly.")
             } else {
               e
             }
@@ -94,10 +106,9 @@ calling_package <- function (n = 2L) {
 
 
 default_lockfile_dir <- function () {
-  lfd <- onetime_base_dir()
-  package <- try(calling_package(n = 3), silent = TRUE)
-  if (inherits(package, "try-error")) package <- "NO-PACKAGE"
-  lfd <- file.path(lfd, package)
+  subdir <- try(calling_package(n = 3), silent = TRUE)
+  if (inherits(subdir, "try-error")) subdir <- "NO-PACKAGE"
+  lfd <- onetime_dir(subdir)
   return(lfd)
 }
 

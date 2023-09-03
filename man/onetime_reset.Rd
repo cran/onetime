@@ -4,12 +4,17 @@
 \alias{onetime_reset}
 \title{Reset a onetime call by ID}
 \usage{
-onetime_reset(id = calling_package(), path = default_lockfile_dir())
+onetime_reset(id = deprecate_calling_package(), path = default_lockfile_dir())
 }
 \arguments{
-\item{id}{Unique ID string. By default, name of the calling package.}
+\item{id}{Unique ID string. If this is unset, the name of the calling
+package will be used. Since onetime 0.2.0, not setting \code{id} is
+deprecated.}
 
-\item{path}{Directory to store lockfiles.}
+\item{path}{Directory to store lockfiles. The default uses a unique
+directory corresponding to the calling package, beneath
+\code{\link[rappdirs:user_data_dir]{rappdirs::user_config_dir()}}. Normally you should leave this as the
+default.}
 }
 \value{
 The result of \code{file.remove()}, invisibly.
@@ -20,7 +25,6 @@ Reset a onetime call by ID
 \examples{
 oo <- options(onetime.dir = tempdir(check = TRUE))
 id <- sample(10000L, 1)
-
 onetime_message("will be shown",  id = id)
 onetime_message("won't be shown", id = id)
 onetime_reset(id = id)

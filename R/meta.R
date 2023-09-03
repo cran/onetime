@@ -66,7 +66,7 @@ check_ok_to_store <- function(
     # and convert NULL to TRUE below.
     message <- sprintf(message, onetime_config_dir)
     omc_result <- onetime_message_confirm(
-                    message         = message,
+                    message,
                     id              = ok_to_store_id,
                     path            = onetime_config_dir,
                     confirm_prompt  = confirm_prompt,
@@ -90,7 +90,7 @@ check_ok_to_store <- function(
 #'
 #' @param ok `TRUE` to grant permission to store lockfiles, `FALSE` to revoke
 #'   it and unset `options("onetime.dir")`.
-#' @return `TRUE` if the operation succeeded.
+#' @return Invisible `NULL`.
 #' @export
 #'
 #' @examples

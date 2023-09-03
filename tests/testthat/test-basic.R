@@ -11,6 +11,14 @@ test_id <- function (id) {
 
 oo <- options(onetime.dir = tempdir(check = TRUE))
 
+withr::defer({
+  for (id in IDS) {
+    suppressWarnings(onetime_reset(id))
+  }
+  rm(IDS)
+  options(oo)
+})
+
 
 test_that("onetime_do", {
   ctr <- 0
@@ -31,9 +39,14 @@ test_that("onetime_do", {
 
 
 test_that("onetime_only", {
-  cat_once <- onetime_only(cat, id = test_id("test-id-6"))
+  cat_once <- onetime_only(cat, id = test_id("test-id-oo-1"))
   expect_output(cat_once("foo"), "foo")
   expect_silent(cat_once("foo"))
+
+  f <- function () TRUE
+  f_once <- onetime_only(f, id = test_id("test-id-oo-2"), default = FALSE)
+  expect_true(f_once())
+  expect_false(f_once())
 })
 
 
@@ -62,6 +75,28 @@ test_that("onetime_been_done", {
   expect_false(
     onetime_been_done(id = id, expiry = expiry)
   )
+})
+
+
+test_that("onetime_mark_as_done", {
+  id <- test_id("test-id-mark-as-done")
+  expect_true(
+    onetime_mark_as_done(id = id)
+  )
+  expect_null(
+    onetime_do(TRUE, id = id)
+  )
+  expect_false(
+    onetime_mark_as_done(id = id)
+  )
+})
+
+
+test_that("onetime_dir", {
+  expect_equal(
+               onetime_dir("foobar"),
+               file.path(getOption("onetime.dir"), "foobar")
+              )
 })
 
 
@@ -101,17 +136,16 @@ test_that("without_permission", {
       )
     }
   )
+})
 
+test_that("without_permission: ask", {
   suppressWarnings(set_ok_to_store(FALSE))
   withr::defer(suppressWarnings(set_ok_to_store(TRUE)))
 
-  if (interactive()) {
-    print("Please say n next")
-  } else {
-    mockr::local_mock(
-      check_ok_to_store = function(...) FALSE
-    )
-  }
+
+  mockr::local_mock(
+    check_ok_to_store = function(...) FALSE
+  )
 
   expect_equal(
     onetime_do(1L, without_permission = "ask", default = 0L,
@@ -119,13 +153,10 @@ test_that("without_permission", {
     0L
   )
 
-  if (interactive()) {
-    print("Please say y next")
-  } else {
-    mockr::local_mock(
-      check_ok_to_store = function(...) TRUE
-    )
-  }
+  mockr::local_mock(
+    check_ok_to_store = function(...) TRUE
+  )
+
   expect_equal(
     onetime_do(1L, without_permission = "ask", default = 0L,
                id = test_id("wp6")),
@@ -156,8 +187,3 @@ test_that("multiprocess", {
 })
 
 
-for (id in IDS) {
-  suppressWarnings(onetime_reset(id))
-}
-rm(IDS)
-options(oo)

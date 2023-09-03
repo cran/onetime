@@ -8,7 +8,7 @@
 \usage{
 onetime_warning(
   ...,
-  id = calling_package(),
+  id = deprecate_calling_package(),
   path = default_lockfile_dir(),
   expiry = NULL,
   without_permission = "warn"
@@ -16,7 +16,7 @@ onetime_warning(
 
 onetime_message(
   ...,
-  id = calling_package(),
+  id = deprecate_calling_package(),
   path = default_lockfile_dir(),
   expiry = NULL,
   without_permission = "warn"
@@ -24,7 +24,7 @@ onetime_message(
 
 onetime_startup_message(
   ...,
-  id = calling_package(),
+  id = deprecate_calling_package(),
   path = default_lockfile_dir(),
   expiry = NULL,
   without_permission = "warn"
@@ -33,25 +33,35 @@ onetime_startup_message(
 \arguments{
 \item{...}{Passed to \code{\link[=warning]{warning()}}, \code{\link[=message]{message()}} or \code{\link[=packageStartupMessage]{packageStartupMessage()}}.}
 
-\item{id}{Unique ID string. By default, name of the calling package.}
+\item{id}{Unique ID string. If this is unset, the name of the calling
+package will be used. Since onetime 0.2.0, not setting \code{id} is
+deprecated.}
 
-\item{path}{Directory to store lockfiles.}
+\item{path}{Directory to store lockfiles. The default uses a unique
+directory corresponding to the calling package, beneath
+\code{\link[rappdirs:user_data_dir]{rappdirs::user_config_dir()}}. Normally you should leave this as the
+default.}
 
 \item{expiry}{\code{\link[=difftime]{difftime()}} or e.g. \code{\link[lubridate:duration]{lubridate::duration()}} object.
 After this length of time, code will be run again.}
 
 \item{without_permission}{Character string. What to do if the user hasn't
 given permission to store files? \code{"warn"} runs the action with an extra
-warning; \code{"run"} runs the action; \code{"pass"} does nothing and returns the
-default; \code{"stop"} throws an error; \code{"ask"} asks for permission, after
-running the action but before recording it on disk.}
+warning; \code{"run"} runs the action with no warning; \code{"pass"} does nothing
+and returns the default; \code{"stop"} throws an error; \code{"ask"} asks for
+permission using \code{\link[=check_ok_to_store]{check_ok_to_store()}}, and returns the default if it is
+not granted.}
 }
 \value{
-\code{TRUE} if the message/warning was shown, \code{FALSE} otherwise.
+Invisible \code{TRUE} if the message/warning was shown, invisible
+\code{FALSE} otherwise.
 }
 \description{
 These functions use \code{\link[=onetime_do]{onetime_do()}} to print a warning or message just
 once.
+}
+\seealso{
+\code{\link[=onetime_do]{onetime_do()}}
 }
 \examples{
 oo <- options(onetime.dir = tempdir(check = TRUE))
@@ -63,7 +73,4 @@ for (n in 1:3) {
 
 onetime_reset(id = id)
 options(oo)
-}
-\seealso{
-\code{\link[=onetime_do]{onetime_do()}}
 }

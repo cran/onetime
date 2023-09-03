@@ -5,15 +5,20 @@
 \title{Check if a onetime call has already been made}
 \usage{
 onetime_been_done(
-  id = calling_package(),
+  id = deprecate_calling_package(),
   path = default_lockfile_dir(),
   expiry = NULL
 )
 }
 \arguments{
-\item{id}{Unique ID string. By default, name of the calling package.}
+\item{id}{Unique ID string. If this is unset, the name of the calling
+package will be used. Since onetime 0.2.0, not setting \code{id} is
+deprecated.}
 
-\item{path}{Directory to store lockfiles.}
+\item{path}{Directory to store lockfiles. The default uses a unique
+directory corresponding to the calling package, beneath
+\code{\link[rappdirs:user_data_dir]{rappdirs::user_config_dir()}}. Normally you should leave this as the
+default.}
 
 \item{expiry}{\code{\link[=difftime]{difftime()}} or e.g. \code{\link[lubridate:duration]{lubridate::duration()}} object.
 After this length of time, code will be run again.}
@@ -28,7 +33,6 @@ Check if a onetime call has already been made
 \examples{
 oo <- options(onetime.dir = tempdir(check = TRUE))
 id <- sample(10000L, 1)
-
 onetime_been_done(id = id)
 onetime_message("Creating an ID",  id = id)
 onetime_been_done(id = id)
